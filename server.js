@@ -1,21 +1,31 @@
-
 const express = require('express');
-const cors = require('cors');
 require('dotenv').config();
+const db = require('./src/config/db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Ara yazılımlar (Middlewares)
-app.use(cors()); // Farklı portlardan (Ön yüzden) gelen isteklere izin ver
-app.use(express.json()); // Gelen JSON verilerini parse et
+app.use(express.json());
 
-// Test Uç Noktası
-app.get('/', (req, res) => {
-    res.json({ mesaj: 'Lab Rezervasyon API Başarıyla Çalışıyor!' });
+// Veritabanı bağlantı testi rotası
+app.get('/api/db-test', async (req, res) => {
+  try {
+    const [rows] = await db.query('SHOW TABLES');
+    res.json({
+      basarili: true,
+      mesaj: 'MySQL baglantisi basarili!',
+      tablolar: rows
+    });
+  } catch (error) {
+    console.error('Veritabani baglanti hatasi:', error.message);
+    res.status(500).json({
+      basarili: false,
+      mesaj: 'Veritabanina baglanilamadi.',
+      hata: error.message
+    });
+  }
 });
 
-// Sunucuyu Dinlemeye Başla
 app.listen(PORT, () => {
-    console.log(`🚀 Sunucu http://localhost:${PORT} portunda ayağa kalktı.`);
+  console.log(`Sunucu http://localhost:${PORT} adresinde calisiyor.`);
 });
