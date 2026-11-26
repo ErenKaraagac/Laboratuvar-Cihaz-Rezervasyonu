@@ -2,12 +2,16 @@ const express = require('express');
 const path = require('path');
 require('dotenv').config();
 const db = require('./src/config/db');
+const cihazRoutes = require('./src/routes/cihazRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// API Rotaları
+app.use('/api/cihazlar', cihazRoutes);
 
 // Veritabanı bağlantı testi rotası
 app.get('/api/db-test', async (req, res) => {
