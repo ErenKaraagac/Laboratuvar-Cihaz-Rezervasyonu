@@ -1,8 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+  laboratuvarlariYukle();
   cihazlariYukle();
+
+  const filtreSelect = document.getElementById('laboratuvar-filtre');
+  filtreSelect.addEventListener('change', (e) => {
+    cihazlariYukle(e.target.value);
+  });
 });
 
-// HTML özel karakterlerini temizleyerek güvenli metin basar
 function metinTemizle(metin) {
   if (!metin) return '';
   const div = document.createElement('div');
@@ -10,7 +15,6 @@ function metinTemizle(metin) {
   return div.innerHTML;
 }
 
-// Veritabanındaki durum değerini Türkçe etikete ve CSS sınıfına çevirir
 function durumBilgisiGetir(durum) {
   switch (durum) {
     case 'musait':
@@ -24,20 +28,78 @@ function durumBilgisiGetir(durum) {
   }
 }
 
-async function cihazlariYukle() {
+async function laboratuvarlariYukle() {
+  const filtreSelect = document.getElementById('laboratuvar-filtre');
+  const labListeAlani = document.getElementById('laboratuvar-listesi');
+
+  try {
+    const yanit = await fetch('/api/laboratuvarlar');
+    const sonuc = await yanit.json();
+
+    if (!yanit.ok || !sonuc.basarili) {
+      throw new Error(sonuc.mesaj || 'Laboratuvar verileri alınamadı.');
+    }
+
+    // Açılır filtre menüsünü doldur
+    sonuc.veriler.forEach((lab) => {
+      const option = document.createElement('option');
+      option.value = lab.id;
+      option.textContent = `${lab.ad} (${lab.cihaz_sayisi} cihaz)`;
+      filtreSelect.appendChild(option);
+    });
+
+    // Alt bölümdeki laboratuvar kartlarını bas
+    labListeAlani.innerHTML = sonuc.veriler
+      .map(
+        (lab) => `
+          <article class="cihaz-card">
+            <div class="card-header">
+              <h4>${metinTemizle(lab.ad)}</h4>
+              <span class="badge badge-musait">${lab.cihaz_sayisi} Cihaz</span>
+            </div>
+            <p class="card-model"><strong>Konum:</strong> ${metinTemizle(lab.konum)} • <strong>Kapasite:</strong> ${lab.kapasite} kişi</p>
+            <p class="card-desc">${metinTemizle(lab.aciklama)}</p>
+            <button class="btn-rezerve btn-secondary" onclick="laboratuvaraGoreFiltrele(${lab.id})">
+              Bu Laboratuvarın Cihazlarını Göster
+            </button>
+          </article>
+        `
+      )
+      .join('');
+  } catch (error) {
+    console.error('Laboratuvar yükleme hatası:', error);
+    labListeAlani.innerHTML = `<p class="placeholder-text error-text">Hata: ${metinTemizle(error.message)}</p>`;
+  }
+}
+
+function laboratuvaraGoreFiltrele(labId) {
+  const filtreSelect = document.getElementById('laboratuvar-filtre');
+  filtreSelect.value = String(labId);
+  cihazlariYukle(labId);
+  document.getElementById('cihazlar').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function cihazlariYukle(laboratuvarId = '') {
   const listeAlani = document.getElementById('cihaz-listesi');
+  const sayacAlani = document.getElementById('cihaz-sayac');
   listeAlani.innerHTML = '<p class="placeholder-text">Cihazlar yükleniyor...</p>';
 
   try {
-    const yanit = await fetch('/api/cihazlar');
+    const url = laboratuvarId
+      ? `/api/cihazlar?laboratuvar_id=${encodeURIComponent(laboratuvarId)}`
+      : '/api/cihazlar';
+
+    const yanit = await fetch(url);
     const sonuc = await yanit.json();
 
     if (!yanit.ok || !sonuc.basarili) {
       throw new Error(sonuc.mesaj || 'Cihaz verileri alınamadı.');
     }
 
+    sayacAlani.textContent = `Toplam ${sonuc.toplam} cihaz gösteriliyor`;
+
     if (sonuc.veriler.length === 0) {
-      listeAlani.innerHTML = '<p class="placeholder-text">Sistemde kayıtlı cihaz bulunamadı.</p>';
+      listeAlani.innerHTML = '<p class="placeholder-text">Seçili laboratuvarda kayıtlı cihaz bulunamadı.</p>';
       return;
     }
 

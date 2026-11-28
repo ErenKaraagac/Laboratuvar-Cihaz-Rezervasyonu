@@ -3,6 +3,7 @@ const path = require('path');
 require('dotenv').config();
 const db = require('./src/config/db');
 const cihazRoutes = require('./src/routes/cihazRoutes');
+const laboratuvarRoutes = require('./src/routes/laboratuvarRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API Rotaları
 app.use('/api/cihazlar', cihazRoutes);
+app.use('/api/laboratuvarlar', laboratuvarRoutes);
 
 // Veritabanı bağlantı testi rotası
 app.get('/api/db-test', async (req, res) => {

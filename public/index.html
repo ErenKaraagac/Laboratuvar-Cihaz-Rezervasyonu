@@ -27,9 +27,29 @@
     </section>
 
     <section id="cihazlar" class="card-section">
-      <h3>Cihaz Listesi</h3>
+      <div class="section-toolbar">
+        <div>
+          <h3>Cihaz Listesi</h3>
+          <small id="cihaz-sayac" class="muted-text"></small>
+        </div>
+
+        <div class="filter-box">
+          <label for="laboratuvar-filtre">Laboratuvar:</label>
+          <select id="laboratuvar-filtre">
+            <option value="">Tüm Laboratuvarlar</option>
+          </select>
+        </div>
+      </div>
+
       <div id="cihaz-listesi" class="grid">
-        <p class="placeholder-text">Cihaz verileri API bağlantısından sonra burada listelenecek.</p>
+        <p class="placeholder-text">Cihazlar yükleniyor...</p>
+      </div>
+    </section>
+
+    <section id="laboratuvarlar" class="card-section" style="margin-top: 2.5rem;">
+      <h3>Laboratuvarlar</h3>
+      <div id="laboratuvar-listesi" class="grid">
+        <p class="placeholder-text">Laboratuvarlar yükleniyor...</p>
       </div>
     </section>
   </main>

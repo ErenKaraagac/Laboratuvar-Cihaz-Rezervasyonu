@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Tüm cihazları laboratuvar bilgileriyle birlikte listele (GET /api/cihazlar)
+// Tüm cihazları (veya seçili laboratuvarın cihazlarını) listele (GET /api/cihazlar)
 router.get('/', async (req, res) => {
   try {
-    const sql = `
+    const { laboratuvar_id } = req.query;
+    const params = [];
+
+    let sql = `
       SELECT 
         c.id,
         c.ad,
@@ -18,10 +21,16 @@ router.get('/', async (req, res) => {
         l.konum AS laboratuvar_konumu
       FROM cihazlar c
       LEFT JOIN laboratuvarlar l ON c.laboratuvar_id = l.id
-      ORDER BY c.id ASC
     `;
 
-    const [cihazlar] = await db.query(sql);
+    if (laboratuvar_id) {
+      sql += ' WHERE c.laboratuvar_id = ?';
+      params.push(laboratuvar_id);
+    }
+
+    sql += ' ORDER BY c.id ASC';
+
+    const [cihazlar] = await db.query(sql, params);
 
     res.json({
       basarili: true,
